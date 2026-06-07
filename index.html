@@ -186,7 +186,7 @@
       flex-shrink: 0;
     }
 
-    .btn-del {
+    .btn-edit, .btn-del {
       flex-shrink: 0;
       width: 32px;
       height: 32px;
@@ -201,10 +201,26 @@
       cursor: pointer;
       transition: background .2s, color .2s, border-color .2s;
     }
+    .btn-edit:hover {
+      background: var(--accent-gl);
+      border-color: rgba(79,142,247,.3);
+      color: var(--accent);
+    }
     .btn-del:hover {
       background: var(--red-gl);
       border-color: rgba(244,91,105,.25);
       color: var(--red);
+    }
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-add.editing {
+      background: #2dd4a8;
+    }
+    .btn-add.editing:hover {
+      background: #34e0b4;
     }
 
     .empty-state {
@@ -356,6 +372,7 @@
     // ── State ─────────────────────────────────────
     let expenses = [];
     let nextId = 1;
+    let editingId = null;
 
     // ── DOM refs ──────────────────────────────────
     const inpName      = document.getElementById('inp-name');
@@ -403,7 +420,10 @@
               <span class="name">${esc(exp.name)}</span>
             </div>
             <span class="amount">${fmt(exp.amount)}</span>
-            <button class="btn-del" data-id="${exp.id}" title="Delete">✕</button>`;
+            <div class="actions">
+              <button class="btn-edit" data-id="${exp.id}" title="Edit">✎</button>
+              <button class="btn-del" data-id="${exp.id}" title="Delete">✕</button>
+            </div>`;
           listEl.appendChild(li);
         });
       }
@@ -485,19 +505,50 @@
       chartSection.appendChild(wrapper);
     }
 
-    // ── Add ───────────────────────────────────────
+    // ── Add / Update ─────────────────────────────
     function addExpense() {
       const name = inpName.value.trim();
       const amount = parseFloat(inpAmount.value);
       if (!name) { toast('⚠️  Enter an expense name'); inpName.focus(); return; }
       if (isNaN(amount) || amount <= 0) { toast('⚠️  Enter a valid amount'); inpAmount.focus(); return; }
 
-      expenses.push({ id: nextId++, name, amount });
+      if (editingId !== null) {
+        const exp = expenses.find(e => e.id === editingId);
+        if (exp) {
+          exp.name = name;
+          exp.amount = amount;
+        }
+        cancelEdit();
+        render();
+        toast('✏️  Expense updated');
+      } else {
+        expenses.push({ id: nextId++, name, amount });
+        inpName.value = '';
+        inpAmount.value = '';
+        inpName.focus();
+        render();
+        toast('✅  Expense added');
+      }
+    }
+
+    // ── Edit ──────────────────────────────────────
+    function editExpense(id) {
+      const exp = expenses.find(e => e.id === id);
+      if (!exp) return;
+      editingId = id;
+      inpName.value = exp.name;
+      inpAmount.value = exp.amount;
+      inpName.focus();
+      btnAdd.textContent = 'Update';
+      btnAdd.classList.add('editing');
+    }
+
+    function cancelEdit() {
+      editingId = null;
       inpName.value = '';
       inpAmount.value = '';
-      inpName.focus();
-      render();
-      toast('✅  Expense added');
+      btnAdd.textContent = 'Add';
+      btnAdd.classList.remove('editing');
     }
 
     // ── Delete ────────────────────────────────────
@@ -512,8 +563,10 @@
     inpAmount.addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); });
     inpName.addEventListener('keydown', e => { if (e.key === 'Enter') inpAmount.focus(); });
     listEl.addEventListener('click', e => {
-      const btn = e.target.closest('.btn-del');
-      if (btn) deleteExpense(Number(btn.dataset.id));
+      const delBtn = e.target.closest('.btn-del');
+      if (delBtn) { deleteExpense(Number(delBtn.dataset.id)); return; }
+      const editBtn = e.target.closest('.btn-edit');
+      if (editBtn) editExpense(Number(editBtn.dataset.id));
     });
 
     // Initial
