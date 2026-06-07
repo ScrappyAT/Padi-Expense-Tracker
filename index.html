@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Padi Expense Tracker — track every naira you spend with a beautiful pie chart breakdown." />
+  <title>Padi Expense Tracker</title>
+  <style>
+    /* ── Reset ──────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --card:     #222636;
+      --border:   #2b2f3e;
+      --text:     #e2e4ef;
+      --muted:    #7c819a;
+      --accent:   #4f8ef7;
+      --accent-h: #6ba1ff;
+      --accent-gl:rgba(79,142,247,.14);
+      --red:      #f45b69;
+      --red-gl:   rgba(244,91,105,.10);
+      --radius:   12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px 80px;
+      background-image:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(79,142,247,.07), transparent);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 580px;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -.4px;
+      color: var(--text);
+    }
+    .header h1 span {
+      color: var(--accent);
+    }
+    .header p {
+      color: var(--muted);
+      font-size: .88rem;
+      margin-top: 5px;
+    }
+
+    /* ── Summary Cards ─────────────────────────────── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .summary-card .label {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .summary-card .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ── Input Row ──────────────────────────────────── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .input-row input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      font-size: .9rem;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-row input::placeholder { color: var(--muted); opacity: .55; }
+    .input-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-gl);
+    }
+    .btn-add {
+      flex-shrink: 0;
+      padding: 0 22px;
+      font-size: .9rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .2s, transform .12s;
+    }
+    .btn-add:hover { background: var(--accent-h); transform: translateY(-1px); }
+    .btn-add:active { transform: translateY(0); }
+
+    /* ── Section Title ─────────────────────────────── */
+    .section-title {
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Expense List ──────────────────────────────── */
+    .expense-list {
+      list-style: none;
+      margin-bottom: 28px;
+    }
+
+    .expense-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      margin-bottom: 8px;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .expense-item .info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .expense-item .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .expense-item .name {
+      font-weight: 600;
+      font-size: .92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .expense-item .amount {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-left: auto;
+      padding: 0 14px;
+      flex-shrink: 0;
+    }
+
+    .btn-del {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .btn-del:hover {
+      background: var(--red-gl);
+      border-color: rgba(244,91,105,.25);
+      color: var(--red);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 36px 0 20px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+    .empty-state .icon { font-size: 2rem; margin-bottom: 8px; opacity: .55; }
+
+    /* ── Pie Chart Section ─────────────────────────── */
+    .chart-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .chart-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .chart-canvas-wrap {
+      flex-shrink: 0;
+    }
+    .chart-legend {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 140px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .84rem;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-name {
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    .legend-pct {
+      color: var(--muted);
+      margin-left: auto;
+      font-weight: 600;
+      font-size: .8rem;
+    }
+
+    .chart-empty {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    /* ── Toast ──────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 500;
+      box-shadow: 0 10px 36px rgba(0,0,0,.45);
+      opacity: 0;
+      transition: transform .3s ease, opacity .3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @media (max-width: 480px) {
+      .input-row { flex-wrap: wrap; }
+      .btn-add { width: 100%; padding: 12px; }
+      .chart-wrapper { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <h1><span>Padi</span> Expense Tracker</h1>
+      <p>Your pocket-friendly spending companion</p>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="label">Total Spent</div>
+        <div class="value" id="total-spent">₦0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Expenses</div>
+        <div class="value" id="expense-count">0</div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-row">
+      <input type="text" id="inp-name" placeholder="Expense name" autocomplete="off" />
+      <input type="number" id="inp-amount" placeholder="Amount (₦)" min="0" step="any" />
+      <button class="btn-add" id="btn-add">Add</button>
+    </div>
+
+    <!-- List -->
+    <div class="section-title">Recent Expenses</div>
+    <ul class="expense-list" id="expense-list"></ul>
+
+    <!-- Pie Chart -->
+    <div class="section-title">Spending Breakdown</div>
+    <div class="chart-section" id="chart-section"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Palette for chart slices ───────────────────
+    const PALETTE = [
+      '#4f8ef7','#f7b84f','#f45b69','#2dd4a8','#a78bfa',
+      '#f97316','#06b6d4','#ec4899','#84cc16','#e879f9',
+      '#facc15','#14b8a6','#fb923c','#818cf8','#34d399',
+    ];
+
+    // ── State ─────────────────────────────────────
+    let expenses = [];
+    let nextId = 1;
+
+    // ── DOM refs ──────────────────────────────────
+    const inpName      = document.getElementById('inp-name');
+    const inpAmount    = document.getElementById('inp-amount');
+    const btnAdd       = document.getElementById('btn-add');
+    const listEl       = document.getElementById('expense-list');
+    const totalSpentEl = document.getElementById('total-spent');
+    const countEl      = document.getElementById('expense-count');
+    const chartSection = document.getElementById('chart-section');
+    const toastEl      = document.getElementById('toast');
+
+    // ── Helpers ───────────────────────────────────
+    function fmt(n) {
+      return '₦' + Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    let _t;
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(_t);
+      _t = setTimeout(() => toastEl.classList.remove('show'), 2200);
+    }
+
+    function color(i) { return PALETTE[i % PALETTE.length]; }
+
+    // ── Render ────────────────────────────────────
+    function render() {
+      const total = expenses.reduce((s, e) => s + e.amount, 0);
+      totalSpentEl.textContent = fmt(total);
+      countEl.textContent = expenses.length;
+
+      /* ── List ── */
+      listEl.innerHTML = '';
+      if (expenses.length === 0) {
+        listEl.innerHTML = `<li class="empty-state"><div class="icon">📋</div>No expenses yet</li>`;
+      } else {
+        expenses.forEach((exp, i) => {
+          const li = document.createElement('li');
+          li.className = 'expense-item';
+          li.innerHTML = `
+            <div class="info">
+              <span class="dot" style="background:${color(i)}"></span>
+              <span class="name">${esc(exp.name)}</span>
+            </div>
+            <span class="amount">${fmt(exp.amount)}</span>
+            <button class="btn-del" data-id="${exp.id}" title="Delete">✕</button>`;
+          listEl.appendChild(li);
+        });
+      }
+
+      /* ── Chart ── */
+      drawChart(total);
+    }
+
+    // ── Pie Chart ─────────────────────────────────
+    function drawChart(total) {
+      if (expenses.length === 0) {
+        chartSection.innerHTML = `<div class="chart-empty">Add expenses to see your spending breakdown</div>`;
+        return;
+      }
+
+      chartSection.innerHTML = '';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'chart-wrapper';
+
+      // Canvas
+      const size = 180;
+      const canvasWrap = document.createElement('div');
+      canvasWrap.className = 'chart-canvas-wrap';
+      const canvas = document.createElement('canvas');
+      canvas.width = size * 2;   // retina
+      canvas.height = size * 2;
+      canvas.style.width = size + 'px';
+      canvas.style.height = size + 'px';
+      canvasWrap.appendChild(canvas);
+      wrapper.appendChild(canvasWrap);
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(2, 2);
+
+      const cx = size / 2;
+      const cy = size / 2;
+      const r  = size / 2 - 6;
+      let startAngle = -Math.PI / 2;
+
+      expenses.forEach((exp, i) => {
+        const slice = (exp.amount / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+        ctx.closePath();
+        ctx.fillStyle = color(i);
+        ctx.fill();
+
+        // subtle gap between slices
+        ctx.strokeStyle = '#1a1d27';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        startAngle += slice;
+      });
+
+      // Centre hole for donut style
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 0.52, 0, Math.PI * 2);
+      ctx.fillStyle = '#1a1d27';
+      ctx.fill();
+
+      // Legend
+      const legend = document.createElement('ul');
+      legend.className = 'chart-legend';
+      expenses.forEach((exp, i) => {
+        const pct = ((exp.amount / total) * 100).toFixed(1);
+        const li = document.createElement('li');
+        li.className = 'legend-item';
+        li.innerHTML = `
+          <span class="legend-dot" style="background:${color(i)}"></span>
+          <span class="legend-name">${esc(exp.name)}</span>
+          <span class="legend-pct">${pct}%</span>`;
+        legend.appendChild(li);
+      });
+      wrapper.appendChild(legend);
+
+      chartSection.appendChild(wrapper);
+    }
+
+    // ── Add ───────────────────────────────────────
+    function addExpense() {
+      const name = inpName.value.trim();
+      const amount = parseFloat(inpAmount.value);
+      if (!name) { toast('⚠️  Enter an expense name'); inpName.focus(); return; }
+      if (isNaN(amount) || amount <= 0) { toast('⚠️  Enter a valid amount'); inpAmount.focus(); return; }
+
+      expenses.push({ id: nextId++, name, amount });
+      inpName.value = '';
+      inpAmount.value = '';
+      inpName.focus();
+      render();
+      toast('✅  Expense added');
+    }
+
+    // ── Delete ────────────────────────────────────
+    function deleteExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      render();
+      toast('🗑️  Expense removed');
+    }
+
+    // ── Events ────────────────────────────────────
+    btnAdd.addEventListener('click', addExpense);
+    inpAmount.addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); });
+    inpName.addEventListener('keydown', e => { if (e.key === 'Enter') inpAmount.focus(); });
+    listEl.addEventListener('click', e => {
+      const btn = e.target.closest('.btn-del');
+      if (btn) deleteExpense(Number(btn.dataset.id));
+    });
+
+    // Initial
+    render();
+  </script>
+</body>
+</html>
