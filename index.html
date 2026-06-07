@@ -10,12 +10,12 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:       #0f1117;
-      --surface:  #1a1d27;
-      --card:     #222636;
-      --border:   #2b2f3e;
-      --text:     #e2e4ef;
-      --muted:    #7c819a;
+      --bg:       #030305;
+      --surface:  #0a0b0f;
+      --card:     #11131a;
+      --border:   #181b24;
+      --text:     #e6e8f2;
+      --muted:    #7a7f99;
       --accent:   #4f8ef7;
       --accent-h: #6ba1ff;
       --accent-gl:rgba(79,142,247,.14);
@@ -118,13 +118,13 @@
       font-size: .9rem;
       font-weight: 600;
       color: #fff;
-      background: var(--accent);
+      background: #1f5fd9;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       transition: background .2s, transform .12s;
     }
-    .btn-add:hover { background: var(--accent-h); transform: translateY(-1px); }
+    .btn-add:hover { background: #3570e8; transform: translateY(-1px); }
     .btn-add:active { transform: translateY(0); }
 
     /* ── Section Title ─────────────────────────────── */
@@ -193,7 +193,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: transparent;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--muted);
@@ -217,10 +217,10 @@
       flex-shrink: 0;
     }
     .btn-add.editing {
-      background: #2dd4a8;
+      background: #1a9e7a;
     }
     .btn-add.editing:hover {
-      background: #34e0b4;
+      background: #21b38b;
     }
 
     .empty-state {
@@ -474,7 +474,7 @@
         ctx.fill();
 
         // subtle gap between slices
-        ctx.strokeStyle = '#1a1d27';
+        ctx.strokeStyle = '#0a0b0f';
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -484,7 +484,7 @@
       // Centre hole for donut style
       ctx.beginPath();
       ctx.arc(cx, cy, r * 0.52, 0, Math.PI * 2);
-      ctx.fillStyle = '#1a1d27';
+      ctx.fillStyle = '#0a0b0f';
       ctx.fill();
 
       // Legend
